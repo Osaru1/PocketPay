@@ -8,31 +8,46 @@
 import XCTest
 @testable import PocketPay_Watch_App
 
-final class PocketPay_Watch_AppTests: XCTestCase {
+final class BudgetStoreTests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    func testAddExpenseLowersRemaining() {
+        let store = BudgetStore()
+        store.addExpense(category: "Food", amount: 20)
+        XCTAssertEqual(store.remaining, 480)
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    // Regression tests
+    // bug I fixed: deleting a bad index used to crash, deleting something in a list that wasnt there
+    func testDeleteInvalidIndexDoesNotCrash() {
+        let store = BudgetStore()
+        store.addExpense(category: "Food", amount: 20)
+        store.deleteExpense(5)
+        store.deleteExpense(-1)
+        XCTAssertEqual(store.expenses.count, 1)
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-        // XCTest Documentation
-        // https://developer.apple.com/documentation/xctest
+    // deleting should give the money back, makes sure it actually gives the money back
+    func testDeleteRestoresRemaining() {
+        let store = BudgetStore()
+        store.addExpense(category: "Food", amount: 20)
+        store.deleteExpense(0)
+        XCTAssertEqual(store.remaining, 500)
     }
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    // bug I fixed: total used to be an Int, so cents broke. makes sure cents add up correctly
+    func testCentsAreKept() {
+        let store = BudgetStore()
+        store.addExpense(category: "Fun", amount: 12.50)
+        XCTAssertEqual(store.remaining, 487.50)
+    }
+
+    // Stress test: 1000 expenses, nothing gets lost and the math still holds
+    func testStressThousandExpenses() {
+        let store = BudgetStore()
+        for _ in 1...1000 {
+            store.addExpense(category: "Food", amount: 1)
         }
+        XCTAssertEqual(store.expenses.count, 1000)
+        XCTAssertEqual(store.remaining, -500)
     }
-
 }

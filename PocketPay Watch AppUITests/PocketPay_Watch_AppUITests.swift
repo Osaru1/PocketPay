@@ -9,35 +9,29 @@ import XCTest
 
 final class PocketPay_Watch_AppUITests: XCTestCase {
 
+    // runs before every test. stop right away if something fails
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
+    // Smoke test: app opens and the main screen shows up
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testSmokeAppLaunches() {
         let app = XCUIApplication()
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // XCUIAutomation Documentation
-        // https://developer.apple.com/documentation/xcuiautomation
+        XCTAssertTrue(app.staticTexts["remainingLabel"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["addButton"].exists)
     }
 
+    // tapping + should open the category list
     @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
-        }
+    func testAddButtonOpensCategories() {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.buttons["addButton"].tap()
+
+        XCTAssertTrue(app.buttons["category_Food"].waitForExistence(timeout: 5))
     }
 }
